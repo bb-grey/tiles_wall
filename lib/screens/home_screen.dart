@@ -1,197 +1,108 @@
-import 'dart:io';
-
+// ignore: import_of_legacy_library_into_null_safe
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:tiles_wall/constans.dart';
-import 'package:tiles_wall/models/tile.dart';
+import 'package:tiles_wall/constants.dart';
+import 'package:tiles_wall/models/slider_image.dart';
 
-class HomeScreen extends StatefulWidget {
-  static const String routeName = '/';
-
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  File? _image;
-  final picker = ImagePicker();
-  double _tileTop = 0.0;
-  double _tileLeft = 0.0;
-  String _imagePath = '';
-
-  List<double> _tileTops = <double>[];
-  List<double> _tileLefts = <double>[];
-  List<String> _movableImagesPath = <String>[];
-
+class HomeScreen extends StatelessWidget {
+  static const String routeName = '/home';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          kAppTitle,
-        ),
-        actions: _getNavbarActions(),
+        title: Text('Tiles Wall'),
       ),
       body: SafeArea(
         child: Column(
           children: [
+            Container(
+              padding: EdgeInsets.symmetric(vertical: kDefaultPadding),
+              child: ImagesSlider(),
+            ),
             Expanded(
-              child: Stack(
+              child: GridView.count(
+                crossAxisCount: 2,
                 children: [
                   Container(
-                    child: _image != null
-                        ? Center(
-                            child: Image.file(
-                              _image!,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : Center(
-                            child: Text('Not Image Selected!'),
-                          ),
+                    color: Colors.blue,
                   ),
-                  _movableImagesPath.length == 0
-                      ? Text('')
-                      : Container(
-                          child: Stack(
-                            children: List.generate(_movableImagesPath.length,
-                                (index) {
-                              return GestureDetector(
-                                onVerticalDragUpdate: (dd) {
-                                  setState(() {
-                                    _tileTops[index] = dd.localPosition.dy;
-                                    _tileLefts[index] = dd.localPosition.dx;
-                                  });
-                                },
-                                child: Stack(
-                                  children: [
-                                    Positioned(
-                                      top: _tileTops[index],
-                                      left: _tileLefts[index],
-                                      child: _imagePath.isEmpty
-                                          ? Container()
-                                          : Image.asset(
-                                              _movableImagesPath[index],
-                                              width: 90.0,
-                                            ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }),
-                          ),
-                        ),
+                  Container(color: Colors.red),
                 ],
               ),
-            ),
-            Container(
-              height: 160.0,
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(
-                    color: Colors.black12,
-                    width: 3.0,
-                  ),
-                ),
-              ),
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: Tile.getAllTiles().length,
-                itemBuilder: (context, index) {
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _imagePath = Tile.getAllTiles()[index].imagePath;
-                        _movableImagesPath.add(_imagePath);
-                        _tileTops.add(0.0);
-                        _tileLefts.add(0.0);
-                      });
-                    },
-                    child: Container(
-                      margin: EdgeInsets.all(kDefaultPadding / 2.0),
-                      child: Image.asset(Tile.getAllTiles()[index].imagePath),
-                    ),
-                  );
-                },
-              ),
-            ),
+            )
           ],
         ),
       ),
     );
   }
-
-  void _captureImage() async {
-    final pickedImage = await picker.getImage(source: ImageSource.camera);
-    setState(() {
-      if (pickedImage != null) {
-        _image = File(pickedImage.path);
-      } else {
-        Fluttertoast.showToast(
-            msg: "No Image Captured",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.CENTER,
-            fontSize: 16.0);
-      }
-    });
-  }
-
-  void _uploadImage() async {
-    final pickedImage = await picker.getImage(source: ImageSource.gallery);
-    setState(() {
-      if (pickedImage != null) {
-        _image = File(pickedImage.path);
-      } else {
-        Fluttertoast.showToast(
-            msg: "No Image Captured",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.CENTER,
-            fontSize: 16.0);
-      }
-    });
-  }
-
-  List<Widget> _getNavbarActions() {
-    return <Widget>[
-      Padding(
-        padding: const EdgeInsets.only(right: kDefaultPadding),
-        child: GestureDetector(
-          onTap: _captureImage,
-          child: Icon(Icons.camera),
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.only(right: kDefaultPadding),
-        child: GestureDetector(
-          onTap: _uploadImage,
-          child: Icon(Icons.upload_file),
-        ),
-      ),
-    ];
-  }
 }
 
-// GestureDetector(
-//                           onVerticalDragUpdate: (dd) {
-//                             setState(() {
-//                               _tileTop = dd.localPosition.dy;
-//                               _tileLeft = dd.localPosition.dx;
-//                             });
-//                           },
-//                           child: Stack(
-//                             children: [
-//                               Positioned(
-//                                 top: _tileTop,
-//                                 left: _tileLeft,
-//                                 child: _imagePath.isEmpty
-//                                     ? Container()
-//                                     : Image.asset(
-//                                         _imagePath,
-//                                         width: 90.0,
-//                                       ),
-//                               ),
-//                             ],
-//                           ),
-//                         )
+class ImagesSlider extends StatefulWidget {
+  @override
+  _ImagesSliderState createState() => _ImagesSliderState();
+}
+
+class _ImagesSliderState extends State<ImagesSlider> {
+  final List<Widget> imageSliders = SliderImage.getSliderImages()
+      .map(
+        (item) => Container(
+          child: Container(
+            margin: EdgeInsets.all(5.0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.all(Radius.circular(5.0)),
+              child: Stack(
+                children: <Widget>[
+                  Image.asset(item.imagePath!,
+                      fit: BoxFit.cover, width: 1000.0),
+                  Positioned(
+                    bottom: 0.0,
+                    left: 0.0,
+                    right: 0.0,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color.fromARGB(200, 0, 0, 0),
+                            Color.fromARGB(0, 0, 0, 0)
+                          ],
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                        ),
+                      ),
+                      padding: EdgeInsets.symmetric(
+                          vertical: 10.0, horizontal: 20.0),
+                      child: Text(
+                        item.title!,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      )
+      .toList();
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Column(
+        children: <Widget>[
+          CarouselSlider(
+            options: CarouselOptions(
+              autoPlay: true,
+              aspectRatio: 2.0,
+              enlargeCenterPage: true,
+            ),
+            items: imageSliders,
+          ),
+        ],
+      ),
+    );
+  }
+}
